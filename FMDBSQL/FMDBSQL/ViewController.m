@@ -20,15 +20,17 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 - (void)SQL {
-    [[SQLManager shanredSQLManager] createRSSTable];
-    SQLModel *model = [[SQLModel alloc] init];
-    model.link = @"link";
-    model.name = @"name";
-    model.date = @"date";
-    model.category = @"category";
-    model.imageUrlString = @"imageUrlString";
-    [[SQLManager shanredSQLManager] addRSS:model];
-    [[SQLManager shanredSQLManager] selectRSS];
+    [[SQLManager shanredSQLManager] createRSSTable:@"table_test" objs:@"name",@"ege", @"score",nil];
+    [[SQLManager shanredSQLManager] createRSSTable:@"table_test1" objs:@"name",@"ege", @"score",nil];
+    [[SQLManager shanredSQLManager] addObjToTable:@"table_test"];
+//    SQLModel *model = [[SQLModel alloc] init];
+//    model.link = @"link";
+//    model.name = @"name";
+//    model.date = @"date";
+//    model.category = @"category";
+//    model.imageUrlString = @"imageUrlString";
+//    [[SQLManager shanredSQLManager] addRSS:model];
+//    [[SQLManager shanredSQLManager] selectRSS];
 }
 
 - (void)didReceiveMemoryWarning {

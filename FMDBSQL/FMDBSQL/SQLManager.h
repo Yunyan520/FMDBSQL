@@ -19,11 +19,6 @@
 
 @interface SQLManager : SQL
 + (SQLManager *)shanredSQLManager;
-- (void)createRSSTable;
-
-- (BOOL)addRSS:(SQLModel *)model;
-
-- (BOOL)deleteRSS:(SQLModel *)model;
-
-- (NSMutableArray *)selectRSS;
+- (void)createRSSTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION;
+- (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION;
 @end
