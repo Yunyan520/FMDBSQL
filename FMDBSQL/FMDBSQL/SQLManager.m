@@ -82,12 +82,11 @@
 }
 - (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
 {
-    //保存所有参数
-    NSMutableArray *objs = [[NSMutableArray alloc] init];
     //参数链表指针
     va_list list;
     //遍历开始
     va_start(list, firstObj);
+    NSMutableArray *objs = [[NSMutableArray alloc] init];
     //知道读取到下一个时nil时结束递增
     for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
         NSLog(@"%@",str);
@@ -100,19 +99,19 @@
     NSMutableString *sql_key = [[NSMutableString alloc] init];
     for(NSInteger i = 0;i < allKays.count; i++)
     {
-        if(i < objs.count-1)
+        if(i < allKays.count-1)
         {
-            [sql_key appendFormat:@"%@,", objs[i]];
+            [sql_key appendFormat:@"%@,", allKays[i]];
         }
         else
         {
-            [sql_key appendFormat:@"%@,", objs[i]];
+            [sql_key appendFormat:@"%@", allKays[i]];
         }
     }
     NSMutableString *sql_obj = [[NSMutableString alloc] init];
-    for(NSInteger i = 0;i < objs.count; i++)
+    for(NSInteger i = 0;i < allKays.count; i++)
     {
-        if(i < objs.count-1)
+        if(i < allKays.count-1)
         {
             [sql_obj appendFormat:@"?,"];
         }
@@ -123,22 +122,113 @@
     }
     if ([_fmdb open]) {
 //        //写sql语句
-//        NSString *sql = @"replace into AlarmTable(currencyArea,coinName,id,alarmPrice,priceType,switch) values(?,?,?,?,?,?)";
         NSString *sql = [NSString stringWithFormat:@"replace into %@(%@) values(%@)",tableName,sql_key,sql_obj];
-//
-//        BOOL isSuc = [_fmdb executeUpdate:sql,currencyArea,coinName, idString, price, priceType, swit];
-//
-//        if (isSuc) {
-//
-//            NSLog(@"添加成功");
-//        } else {
-//
-//            NSLog(@"添加失败");
-//
-//        }
+        BOOL isSuc = [_fmdb executeUpdate:sql withArgumentsInArray:objs];
+        if (isSuc) {
+
+            NSLog(@"添加成功");
+        } else {
+
+            NSLog(@"添加失败%@", _fmdb.lastErrorMessage);
+        }
+    }
+    [_fmdb close];
+}
+- (void)deleteObjInTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
+{
+    //参数链表指针
+    va_list list;
+    //遍历开始
+    va_start(list, firstObj);
+    //知道读取到下一个时nil时结束递增
+    NSMutableArray *objs = [[NSMutableArray alloc] init];
+    for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
+        NSLog(@"%@",str);
+        [objs addObject:str];
+    }
+    //结束遍历
+    va_end(list);
+    NSArray *allkeys = [_tableObjDic objectForKey:tableName];
+    NSMutableString *sql_Obj = [[NSMutableString alloc] init];
+    for(NSInteger i = 0; i < allkeys.count; i++)
+    {
+        if(i < allkeys.count-1)
+        {
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@ = '%@' and ",allkeys[i],objs[i]]];
+        }
+        else
+        {
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@ = '%@'",allkeys[i],objs[i]]];
+        }
     }
     
+    if ([_fmdb open]) {
+        
+        
+        NSString *deleteSql = [NSString stringWithFormat:
+                               @"delete from %@ where %@",
+                               tableName,sql_Obj];
+        BOOL res = [_fmdb executeUpdate:deleteSql];
+        
+        if (!res) {
+            NSLog(@"error when delete db table");
+        } else {
+            NSLog(@"success to delete db table");
+            
+        }
+    }
     [_fmdb close];
+}
+- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where value:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION
+{
+    //参数链表指针
+    va_list list;
+    //遍历开始
+    va_start(list, firstValue);
+    //知道读取到下一个时nil时结束递增
+    NSMutableArray *objs = [[NSMutableArray alloc] init];
+    for (NSString *str = firstValue; str != nil; str = va_arg(list, NSString*)) {
+        NSLog(@"%@",str);
+        [objs addObject:str];
+    }
+    //结束遍历
+    va_end(list);
+    NSArray *allkeys = [_tableObjDic objectForKey:tableName];
+    NSMutableString *sql_Obj = [[NSMutableString alloc] init];
+    for(NSInteger i = 0; i < allkeys.count; i++)
+    {
+        if([allkeys[i] isEqualToString:where])
+        {
+            continue;
+        }
+        if(i < allkeys.count-1)
+        {
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@=?,",allkeys[i]]];
+        }
+        else
+        {
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@=?",allkeys[i]]];
+        }
+    }
+    
+    if ([_fmdb open]) {
+//        NSString *updateSql = [NSString stringWithFormat:@"update AlarmTable set switch='%@' where currencyArea='%@' and alarmPrice='%@' and coinName='%@' and priceType='%@'", currencyArea, swit, alarmPrice, coinName, priceType];
+        
+//        NSString *sql = [NSString stringWithFormat:@"update %@ set loginid=?,friendid=?,message=?,messagetype=?,readStatus=?,sendStatus=?,cureatetime=? where messageid=?",JWDFMDBChatMessageDataName];
+        
+        NSString *updateSql = [NSString stringWithFormat:
+                               @"update %@ set where %@=?,%@",tableName,
+                               where,sql_Obj];
+//        BOOL res = [_fmdb executeUpdate:updateSql];
+        BOOL res = [_fmdb executeUpdate:updateSql withArgumentsInArray:objs];
+        
+        if (!res) {
+            NSLog(@"error when update db table");
+        } else {
+            NSLog(@"success to update db table");
+        }
+        [_fmdb close];
+    }
 }
 - (NSArray *)getAllObj:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
 {

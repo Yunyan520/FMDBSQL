@@ -21,16 +21,15 @@
 }
 - (void)SQL {
     [[SQLManager shanredSQLManager] createRSSTable:@"table_test" objs:@"name",@"ege", @"score",nil];
-    [[SQLManager shanredSQLManager] createRSSTable:@"table_test1" objs:@"name",@"ege", @"score",nil];
-    [[SQLManager shanredSQLManager] addObjToTable:@"table_test"];
-//    SQLModel *model = [[SQLModel alloc] init];
-//    model.link = @"link";
-//    model.name = @"name";
-//    model.date = @"date";
-//    model.category = @"category";
-//    model.imageUrlString = @"imageUrlString";
-//    [[SQLManager shanredSQLManager] addRSS:model];
-//    [[SQLManager shanredSQLManager] selectRSS];
+//    [[SQLManager shanredSQLManager] createRSSTable:@"table_test1" objs:@"name",@"ege", @"score",nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job",@"23",@"80" ,nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job1",@"231",@"801" ,nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job2",@"232",@"802" ,nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job3",@"233",@"803" ,nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job4",@"234",@"804" ,nil];
+//    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job1",@"203",@"880" ,nil];
+//    [[SQLManager shanredSQLManager] deleteObjInTable:@"table_test" objs:@"job",@"23",@"80", nil];
+    [[SQLManager shanredSQLManager] updateObjInTable:@"table_test" whereObj:@"job" value:@"jobc",@"244",@"111", nil];
 }
 
 - (void)didReceiveMemoryWarning {

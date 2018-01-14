@@ -21,4 +21,6 @@
 + (SQLManager *)shanredSQLManager;
 - (void)createRSSTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION;
 - (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION;
+- (void)deleteObjInTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION;
+- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where value:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION;
 @end
