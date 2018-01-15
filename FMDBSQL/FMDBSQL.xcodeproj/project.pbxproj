@@ -15,7 +15,6 @@
 		3C7A4EA22009F4310033D1E2 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C7A4EA12009F4310033D1E2 /* main.m */; };
 		3C7A4EAC2009F4310033D1E2 /* FMDBSQLTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C7A4EAB2009F4310033D1E2 /* FMDBSQLTests.m */; };
 		3C7A4EB72009F4310033D1E2 /* FMDBSQLUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C7A4EB62009F4310033D1E2 /* FMDBSQLUITests.m */; };
-		3C7A4EC82009F4490033D1E2 /* SQL.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C7A4EC42009F4480033D1E2 /* SQL.m */; };
 		3C7A4EC92009F4490033D1E2 /* SQLManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C7A4EC72009F4490033D1E2 /* SQLManager.m */; };
 		AAF6B31F89401A346D6776C7 /* libPods-FMDBSQL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FBB576A262B590CA1A5661E /* libPods-FMDBSQL.a */; };
 /* End PBXBuildFile section */
@@ -56,9 +55,7 @@
 		3C7A4EB22009F4310033D1E2 /* FMDBSQLUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FMDBSQLUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C7A4EB62009F4310033D1E2 /* FMDBSQLUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FMDBSQLUITests.m; sourceTree = "<group>"; };
 		3C7A4EB82009F4310033D1E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3C7A4EC42009F4480033D1E2 /* SQL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SQL.m; sourceTree = "<group>"; };
 		3C7A4EC52009F4490033D1E2 /* SQLManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQLManager.h; sourceTree = "<group>"; };
-		3C7A4EC62009F4490033D1E2 /* SQL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SQL.h; sourceTree = "<group>"; };
 		3C7A4EC72009F4490033D1E2 /* SQLManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SQLManager.m; sourceTree = "<group>"; };
 		8D86CB9F357A4FE87B899BE1 /* Pods-FMDBSQL.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FMDBSQL.release.xcconfig"; path = "Pods/Target Support Files/Pods-FMDBSQL/Pods-FMDBSQL.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -127,8 +124,6 @@
 				3C7A4E932009F4310033D1E2 /* AppDelegate.m */,
 				3C7A4E952009F4310033D1E2 /* ViewController.h */,
 				3C7A4E962009F4310033D1E2 /* ViewController.m */,
-				3C7A4EC62009F4490033D1E2 /* SQL.h */,
-				3C7A4EC42009F4480033D1E2 /* SQL.m */,
 				3C7A4EC52009F4490033D1E2 /* SQLManager.h */,
 				3C7A4EC72009F4490033D1E2 /* SQLManager.m */,
 				3C7A4E982009F4310033D1E2 /* Main.storyboard */,
@@ -354,7 +349,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3C7A4EC92009F4490033D1E2 /* SQLManager.m in Sources */,
-				3C7A4EC82009F4490033D1E2 /* SQL.m in Sources */,
 				3C7A4E972009F4310033D1E2 /* ViewController.m in Sources */,
 				3C7A4EA22009F4310033D1E2 /* main.m in Sources */,
 				3C7A4E942009F4310033D1E2 /* AppDelegate.m in Sources */,

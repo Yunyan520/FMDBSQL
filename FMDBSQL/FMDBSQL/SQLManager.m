@@ -8,8 +8,6 @@
 
 #import "SQLManager.h"
 #import "FMDatabase.h"
-@implementation SQLModel
-@end
 
 @implementation SQLManager
 {
@@ -179,7 +177,7 @@
     }
     [_fmdb close];
 }
-- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where value:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION
+- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where newValue:(NSString *)newValue objs:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION
 {
     //参数链表指针
     va_list list;
@@ -197,54 +195,47 @@
     NSMutableString *sql_Obj = [[NSMutableString alloc] init];
     for(NSInteger i = 0; i < allkeys.count; i++)
     {
-        if([allkeys[i] isEqualToString:where])
-        {
-            continue;
-        }
         if(i < allkeys.count-1)
         {
-            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@=?,",allkeys[i]]];
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@='%@' and ",allkeys[i],objs[i]]];
         }
         else
         {
-            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@=?",allkeys[i]]];
+            [sql_Obj appendFormat:@"%@", [NSString stringWithFormat:@"%@='%@'",allkeys[i],objs[i]]];
         }
     }
-    
     if ([_fmdb open]) {
-//        NSString *updateSql = [NSString stringWithFormat:@"update AlarmTable set switch='%@' where currencyArea='%@' and alarmPrice='%@' and coinName='%@' and priceType='%@'", currencyArea, swit, alarmPrice, coinName, priceType];
-        
-//        NSString *sql = [NSString stringWithFormat:@"update %@ set loginid=?,friendid=?,message=?,messagetype=?,readStatus=?,sendStatus=?,cureatetime=? where messageid=?",JWDFMDBChatMessageDataName];
-        
         NSString *updateSql = [NSString stringWithFormat:
-                               @"update %@ set where %@=?,%@",tableName,
-                               where,sql_Obj];
-//        BOOL res = [_fmdb executeUpdate:updateSql];
-        BOOL res = [_fmdb executeUpdate:updateSql withArgumentsInArray:objs];
+                               @"update %@ set %@='%@' where %@",tableName,where,newValue,
+                               sql_Obj];
+        BOOL res = [_fmdb executeUpdate:updateSql];
         
         if (!res) {
-            NSLog(@"error when update db table");
+            NSLog(@"error when update db table%@",_fmdb.lastErrorMessage);
         } else {
             NSLog(@"success to update db table");
         }
         [_fmdb close];
     }
 }
-- (NSArray *)getAllObj:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
+- (NSArray *)getAllMessage:(NSString *)tableName where:(NSString *)where value:(NSString *)value
 {
-    NSMutableArray *objs = [[NSMutableArray alloc] init];
-    //参数链表指针
-    va_list list;
-    //遍历开始
-    va_start(list, firstObj);
-    //知道读取到下一个时nil时结束递增
-    for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
-        NSLog(@"%@",str);
-        [objs addObject:str];
+    [_fmdb open];
+    NSMutableArray *historyArr = [NSMutableArray array];
+    if (historyArr.count > 0) {
+        [historyArr removeAllObjects];
     }
-    //结束遍历
-    va_end(list);
-    return [objs copy];
+    if ([_fmdb open]) {
+        NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@='%@'",tableName,where,value];
+        FMResultSet *rs = [_fmdb executeQuery:sql];
+        while ([rs next]) {
+            for (NSString *obj in [_tableObjDic objectForKey:tableName]) {
+                NSString *value = [rs stringForColumn:obj];
+                [historyArr addObject:value];
+            }
+        }
+    }
+    return historyArr;
 }
 @end
 

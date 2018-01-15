@@ -29,7 +29,8 @@
 //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job4",@"234",@"804" ,nil];
 //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job1",@"203",@"880" ,nil];
 //    [[SQLManager shanredSQLManager] deleteObjInTable:@"table_test" objs:@"job",@"23",@"80", nil];
-    [[SQLManager shanredSQLManager] updateObjInTable:@"table_test" whereObj:@"job" value:@"jobc",@"244",@"111", nil];
+//    [[SQLManager shanredSQLManager] updateObjInTable:@"table_test" whereObj:@"name" newValue:@"jobChange" objs:@"job",@"23",@"80", nil];
+    [[SQLManager shanredSQLManager] getAllMessage:@"table_test" where:@"name" value:@"job1"];
 }
 
 - (void)didReceiveMemoryWarning {
