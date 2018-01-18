@@ -77,6 +77,7 @@
             NSLog(@"表创建失败%@", _fmdb.lastErrorMessage);
         }
     }
+    [_fmdb close];
 }
 - (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
 {
