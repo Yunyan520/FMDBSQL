@@ -1,4 +1,11 @@
 platform :ios, '7.0'
+
 target 'FMDBSQL' do
-pod 'FMDB', '~> 2.7.2'
+	pod 'FMDB', '~> 2.7.2'
+
+	post_install do |installer|
+	    installer.pods_project.build_configurations.each do |config|
+	      config.build_settings['SYMROOT'] = '${SRCROOT}/../build'
+	    end
+  	end
 end
