@@ -8,49 +8,117 @@
 
 #import "SQLManager.h"
 #import "FMDatabase.h"
+#import <FMDatabaseQueue.h>
+
+
+//链表操作
+#define VA_LIST_CREATE(__object) \
+va_list list; \
+va_start(list, __object);
+
+
+#define VA_LIST_CLEAR(__list) va_end(__list)
+
+
+
+
+
+// 创建 table的专用
+#define VA_LIST_ER_ARRAY(__LIST, __object ,__ARRAY) \
+do { \
+if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
+return; \
+} \
+for (NSString *str = __object; str != nil; str = va_arg(__LIST, NSString*)) { \
+[__ARRAY addObject:str]; \
+} \
+} while(0)
+
+
+
+
+
+// 获取链表 并 遍历参数 给数组
+#define VA_LIST_CREATE_ARRAY( __object ,__ARRAY) \
+do { \
+VA_LIST_CREATE(__object); \
+\
+if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
+return; \
+} \
+for (NSString *str = __object; str != nil; str = va_arg(list, NSString*)) { \
+[__ARRAY addObject:str]; \
+} \
+\
+VA_LIST_CLEAR(list); \
+} while(0)
 
 @implementation SQLManager
 {
     FMDatabase *_fmdb;
     NSMutableDictionary *_tableObjDic;
+    FMDatabaseQueue * _ioQueue;
 }
-+ (SQLManager *)shanredSQLManager
-{
+
+
+
++ (SQLManager *)shanredSQLManager {
     static SQLManager *instance = nil;
     static dispatch_once_t once_token;
     dispatch_once(&once_token, ^{
-        instance = [[SQLManager alloc] init];
+        //我处理这个了
+        instance = [[SQLManager alloc] initConfig];
     });
     return instance;
 }
-- (instancetype)init
-{
-    self = [super init];
-    if(self)
-    {
+
+
+- (instancetype)initConfig {
+    //我处理这个了
+    if(self = [super init]) {
         //1.数据库文件路径
         NSString * path = [NSHomeDirectory() stringByAppendingFormat:@"/Documents/AlarmInfos.db"];
         NSLog(@"%@", path);
         //2.实例化FMDataBase对象
-        _fmdb = [[FMDatabase alloc]initWithPath:path];
+        _fmdb = [[FMDatabase alloc] initWithPath:path];
         _tableObjDic = [[NSMutableDictionary alloc] init];
+        
+        /*线程安全  我写的这个 总崩溃*/
+        _ioQueue = [FMDatabaseQueue databaseQueueWithPath:path];
+        
     }
     return self;
 }
-- (void)createRSSTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
-{
-    NSMutableArray *objs = [[NSMutableArray alloc] init];
-    //参数链表指针
-    va_list list;
-    //遍历开始
-    va_start(list, firstObj);
-    //知道读取到下一个时nil时结束递增
-    for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
-        NSLog(@"%@",str);
-        [objs addObject:str];
+
+
+#pragma mark 创建表格
+- (void)createRSSTable:(NSString *)tableName objs:(NSString *)firstObj, ... {
+    VA_LIST_CREATE(firstObj);
+    [self createRSSTable:tableName complete:nil objs:firstObj orVAList:list];
+    VA_LIST_CLEAR(list);
+}
+
+
+- (void)createRSSTable:(NSString *)tableName complete:(void(^)(void))complete objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION {
+    VA_LIST_CREATE(firstObj);
+    [self createRSSTable:tableName complete:complete objs:firstObj orVAList:list];
+    VA_LIST_CLEAR(list);
+}
+
+- (void)createRSSTable:(NSString *)tableName complete:(void(^)(void))complete objs:(NSString *)firstObj orVAList:(va_list)list {
+    
+    NSParameterAssert(tableName);
+    
+    NSMutableArray *objs = [NSMutableArray new];
+    VA_LIST_ER_ARRAY(list, firstObj, objs);
+    
+    /***** 这个很重要 ******/
+    if(objs.count == 0) {
+        if(complete) {
+            NSLog(@"objs 为空！！！");
+            complete();
+        }
     }
-    //结束遍历
-    va_end(list);
     
     NSMutableString *sql = [[NSMutableString alloc] init];
     for(NSInteger i = 0;i < objs.count; i++)
@@ -69,30 +137,56 @@
     if(isOpen)
     {
         NSString * priceAlertSql = [NSString stringWithFormat:@"create table if not exists %@(%@)",tableName,sql];
-        BOOL isTableSuccess = [_fmdb executeUpdate:priceAlertSql];
-        if(isTableSuccess){
-            NSLog(@"表创建成功");
-            [_tableObjDic setObject:objs forKey:tableName];
-        }else{
-            NSLog(@"表创建失败%@", _fmdb.lastErrorMessage);
-        }
+        [_ioQueue inDatabase:^(FMDatabase *db) {
+            BOOL isTableSuccess = [_fmdb executeUpdate:priceAlertSql];
+            if(isTableSuccess){
+                NSLog(@"表创建成功");
+                [_tableObjDic setObject:objs forKey:tableName];
+            }else{
+                NSLog(@"表创建失败%@", _fmdb.lastErrorMessage);
+            }
+            [_fmdb close];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if(complete) {
+                    complete();
+                }
+            });
+        }];
     }
-    [_fmdb close];
+    
+    
+    
 }
-- (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
-{
-    //参数链表指针
-    va_list list;
-    //遍历开始
-    va_start(list, firstObj);
+
+
+
+
+#pragma mark 向表中插入数据
+- (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION {
+    /*
+     //参数链表指针
+     va_list list;
+     //遍历开始
+     va_start(list, firstObj);
+     NSMutableArray *objs = [[NSMutableArray alloc] init];
+     //知道读取到下一个时nil时结束递增
+     for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
+     NSLog(@"%@",str);
+     [objs addObject:str];
+     }
+     //结束遍历
+     va_end(list);
+     */
+    
+    
+    //我优化的
     NSMutableArray *objs = [[NSMutableArray alloc] init];
-    //知道读取到下一个时nil时结束递增
-    for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
-        NSLog(@"%@",str);
-        [objs addObject:str];
-    }
-    //结束遍历
-    va_end(list);
+    VA_LIST_CREATE_ARRAY(firstObj, objs);
+    
+    
+    
+    
     //获取列表中所有键
     NSArray *allKays = [_tableObjDic objectForKey:tableName];
     NSMutableString *sql_key = [[NSMutableString alloc] init];
@@ -120,21 +214,24 @@
         }
     }
     if ([_fmdb open]) {
-//        //写sql语句
+        //        //写sql语句
         NSString *sql = [NSString stringWithFormat:@"replace into %@(%@) values(%@)",tableName,sql_key,sql_obj];
         BOOL isSuc = [_fmdb executeUpdate:sql withArgumentsInArray:objs];
         if (isSuc) {
-
+            
             NSLog(@"添加成功");
         } else {
-
+            
             NSLog(@"添加失败%@", _fmdb.lastErrorMessage);
         }
     }
     [_fmdb close];
 }
-- (void)deleteObjInTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION
-{
+
+
+
+#pragma mark 删除数据
+- (void)deleteObjInTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION {
     //参数链表指针
     va_list list;
     //遍历开始
@@ -178,8 +275,10 @@
     }
     [_fmdb close];
 }
-- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where newValue:(NSString *)newValue objs:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION
-{
+
+
+#pragma mark 更改表中数据
+- (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where newValue:(NSString *)newValue objs:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION {
     //参数链表指针
     va_list list;
     //遍历开始
@@ -219,8 +318,11 @@
         [_fmdb close];
     }
 }
-- (NSArray *)getAllMessage:(NSString *)tableName where:(NSString *)where value:(NSString *)value
-{
+
+
+
+#pragma mark 获取一行所有数据
+- (NSArray *)getAllMessage:(NSString *)tableName where:(NSString *)where value:(NSString *)value {
     [_fmdb open];
     NSMutableArray *historyArr = [NSMutableArray array];
     if (historyArr.count > 0) {
