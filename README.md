@@ -8,7 +8,7 @@ pod 'FMDB', '~> 2.7.2'   导入FMDB
 ```
 先从创建表格说起，由于创建每个表格需要的参数名称、数量都有差别，毫无疑问要想统一方法，则需要传递不定长的参数，灵感来源于UIAlertView传递参数的方法，于是创建表格的方法就写成了这个样子
 ```objc
-\- (void)createRSSTable:(NSString*)tableName objs:(NSString*)firstObj, ...NS_REQUIRES_NIL_TERMINATION;
+- (void)createRSSTable:(NSString*)tableName objs:(NSString*)firstObj, ...NS_REQUIRES_NIL_TERMINATION;
 ```
 but  参数是传进来了，怎么来拿到这些参数从而写出SQL语句呢？接着往下看，实际上这些参数都被存入的一个链表之中，而不是数组，iOS提供了方法供我们来遍历这些参数，于是我们就可以把这些参数放到我们熟悉的数组中NSMutableArray *objs = [[NSMutableArray alloc] init];
 
@@ -35,7 +35,7 @@ but  参数是传进来了，怎么来拿到这些参数从而写出SQL语句呢
 
 ​    va_end(list);
 
-拿到参数数组就可以来拼接SQL语句了，首先来拼接参数语句
+//拿到参数数组就可以来拼接SQL语句了，首先来拼接参数语句
 
 NSMutableString *sql = [[NSMutableString alloc] init];
 
