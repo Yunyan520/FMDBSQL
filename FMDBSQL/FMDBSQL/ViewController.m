@@ -28,17 +28,19 @@
     
     [SQLMANAGER_SHARE createRSSTable:@"table_test" complete:nil objs:@"name",@"score", nil];
     
-    //    [[SQLManager shanredSQLManager] createRSSTable:@"table_test" objs:@"name",@"ege", @"score",nil];
-    //    [[SQLManager shanredSQLManager] createRSSTable:@"table_test1" objs:@"name",@"ege", @"score",nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job",@"23",@"80" ,nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job1",@"231",@"801" ,nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job2",@"232",@"802" ,nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job3",@"233",@"803" ,nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job4",@"234",@"804" ,nil];
-    //    [[SQLManager shanredSQLManager] addObjToTable:@"table_test" objs:@"job1",@"203",@"880" ,nil];
-    //    [[SQLManager shanredSQLManager] deleteObjInTable:@"table_test" objs:@"job",@"23",@"80", nil];
-    //    [[SQLManager shanredSQLManager] updateObjInTable:@"table_test" whereObj:@"name" newValue:@"jobChange" objs:@"job",@"23",@"80", nil];
-    [[SQLManager shanredSQLManager] getAllMessage:@"table_test" where:@"name" value:@"job1"];
+    //    [SQLMANAGER_SHARE createRSSTable:@"table_test" objs:@"name",@"ege", @"score",nil];
+    //    [SQLMANAGER_SHARE createRSSTable:@"table_test1" objs:@"name",@"ege", @"score",nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job",@"23",@"80" ,nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job1",@"231",@"801" ,nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job2",@"232",@"802" ,nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job3",@"233",@"803" ,nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job4",@"234",@"804" ,nil];
+    //    [SQLMANAGER_SHARE addObjToTable:@"table_test" objs:@"job1",@"203",@"880" ,nil];
+    //    [SQLMANAGER_SHARE deleteObjInTable:@"table_test" objs:@"job",@"23",@"80", nil];
+    //    [SQLMANAGER_SHARE updateObjInTable:@"table_test" whereObj:@"name" newValue:@"jobChange" objs:@"job",@"23",@"80", nil];
+    
+    //暂不支持 参数为nil
+    [SQLMANAGER_SHARE getAllMessage:@"table_test" where:nil value:@"job1"];
 }
 
 - (void)didReceiveMemoryWarning {

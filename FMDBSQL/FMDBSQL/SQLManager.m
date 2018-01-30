@@ -12,10 +12,9 @@
 
 
 //链表操作
-#define VA_LIST_CREATE(__object) \
-va_list list; \
-va_start(list, __object);
-
+#define VA_LIST_CREATE(__object)  \
+                    va_list list; \
+                    va_start(list, __object);
 
 #define VA_LIST_CLEAR(__list) va_end(__list)
 
@@ -26,12 +25,12 @@ va_start(list, __object);
 // 创建 table的专用
 #define VA_LIST_ER_ARRAY(__LIST, __object ,__ARRAY) \
 do { \
-if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
-return; \
-} \
-for (NSString *str = __object; str != nil; str = va_arg(__LIST, NSString*)) { \
-[__ARRAY addObject:str]; \
-} \
+    if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
+        return; \
+    } \
+    for (NSString *str = __object; str != nil; str = va_arg(__LIST, NSString*)) { \
+        [__ARRAY addObject:str]; \
+    } \
 } while(0)
 
 
@@ -41,16 +40,16 @@ for (NSString *str = __object; str != nil; str = va_arg(__LIST, NSString*)) { \
 // 获取链表 并 遍历参数 给数组
 #define VA_LIST_CREATE_ARRAY( __object ,__ARRAY) \
 do { \
-VA_LIST_CREATE(__object); \
+    VA_LIST_CREATE(__object); \
 \
-if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
-return; \
-} \
-for (NSString *str = __object; str != nil; str = va_arg(list, NSString*)) { \
-[__ARRAY addObject:str]; \
-} \
+    if(![__ARRAY isKindOfClass:[NSMutableArray class]] || ![__ARRAY isKindOfClass:[NSArray class]]) { \
+        return; \
+    } \
+    for (NSString *str = __object; str != nil; str = va_arg(list, NSString*)) { \
+        [__ARRAY addObject:str]; \
+    } \
 \
-VA_LIST_CLEAR(list); \
+    VA_LIST_CLEAR(list); \
 } while(0)
 
 @implementation SQLManager
@@ -83,7 +82,7 @@ VA_LIST_CLEAR(list); \
         _fmdb = [[FMDatabase alloc] initWithPath:path];
         _tableObjDic = [[NSMutableDictionary alloc] init];
         
-        /*线程安全  我写的这个 总崩溃*/
+        /*线程安全*/
         _ioQueue = [FMDatabaseQueue databaseQueueWithPath:path];
         
     }
@@ -111,13 +110,13 @@ VA_LIST_CLEAR(list); \
     
     NSMutableArray *objs = [NSMutableArray new];
     VA_LIST_ER_ARRAY(list, firstObj, objs);
-    
-    /***** 这个很重要 ******/
+
     if(objs.count == 0) {
         if(complete) {
             NSLog(@"objs 为空！！！");
             complete();
         }
+        return;
     }
     
     NSMutableString *sql = [[NSMutableString alloc] init];
@@ -154,6 +153,9 @@ VA_LIST_CLEAR(list); \
             });
         }];
     }
+    else {
+        [_fmdb close];
+    }
     
     
     
@@ -164,28 +166,16 @@ VA_LIST_CLEAR(list); \
 
 #pragma mark 向表中插入数据
 - (void)addObjToTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION {
-    /*
-     //参数链表指针
-     va_list list;
-     //遍历开始
-     va_start(list, firstObj);
-     NSMutableArray *objs = [[NSMutableArray alloc] init];
-     //知道读取到下一个时nil时结束递增
-     for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
-     NSLog(@"%@",str);
-     [objs addObject:str];
-     }
-     //结束遍历
-     va_end(list);
-     */
+  
+    NSParameterAssert(tableName);
     
-    
-    //我优化的
     NSMutableArray *objs = [[NSMutableArray alloc] init];
     VA_LIST_CREATE_ARRAY(firstObj, objs);
-    
-    
-    
+
+    if(objs.count == 0) {
+        NSLog(@"没有参数");
+        return;
+    }
     
     //获取列表中所有键
     NSArray *allKays = [_tableObjDic objectForKey:tableName];
@@ -216,34 +206,37 @@ VA_LIST_CLEAR(list); \
     if ([_fmdb open]) {
         //        //写sql语句
         NSString *sql = [NSString stringWithFormat:@"replace into %@(%@) values(%@)",tableName,sql_key,sql_obj];
-        BOOL isSuc = [_fmdb executeUpdate:sql withArgumentsInArray:objs];
-        if (isSuc) {
-            
-            NSLog(@"添加成功");
-        } else {
-            
-            NSLog(@"添加失败%@", _fmdb.lastErrorMessage);
-        }
+        [_ioQueue inDatabase:^(FMDatabase *db) {
+            BOOL isSuc = [_fmdb executeUpdate:sql withArgumentsInArray:objs];
+            if (isSuc) {
+                
+                NSLog(@"添加成功");
+            } else {
+                
+                NSLog(@"添加失败%@", _fmdb.lastErrorMessage);
+            }
+            [_fmdb close];
+        }];
     }
-    [_fmdb close];
+    else {
+        [_fmdb close];
+    }
 }
 
 
 
 #pragma mark 删除数据
 - (void)deleteObjInTable:(NSString *)tableName objs:(NSString *)firstObj, ... NS_REQUIRES_NIL_TERMINATION {
-    //参数链表指针
-    va_list list;
-    //遍历开始
-    va_start(list, firstObj);
-    //知道读取到下一个时nil时结束递增
+    
+    NSParameterAssert(tableName);
+    
     NSMutableArray *objs = [[NSMutableArray alloc] init];
-    for (NSString *str = firstObj; str != nil; str = va_arg(list, NSString*)) {
-        NSLog(@"%@",str);
-        [objs addObject:str];
+    VA_LIST_CREATE_ARRAY(firstObj, objs);
+    if(objs.count == 0) {
+        NSLog(@"没有参数");
+        return;
     }
-    //结束遍历
-    va_end(list);
+    
     NSArray *allkeys = [_tableObjDic objectForKey:tableName];
     NSMutableString *sql_Obj = [[NSMutableString alloc] init];
     for(NSInteger i = 0; i < allkeys.count; i++)
@@ -259,38 +252,41 @@ VA_LIST_CLEAR(list); \
     }
     
     if ([_fmdb open]) {
-        
-        
+
         NSString *deleteSql = [NSString stringWithFormat:
                                @"delete from %@ where %@",
                                tableName,sql_Obj];
-        BOOL res = [_fmdb executeUpdate:deleteSql];
-        
-        if (!res) {
-            NSLog(@"error when delete db table");
-        } else {
-            NSLog(@"success to delete db table");
+        [_ioQueue inDatabase:^(FMDatabase *db) {
+            BOOL res = [_fmdb executeUpdate:deleteSql];
             
-        }
+            if (!res) {
+                NSLog(@"error when delete db table");
+            } else {
+                NSLog(@"success to delete db table");
+            }
+            [_fmdb close];
+        }];
     }
-    [_fmdb close];
+    else {
+        [_fmdb close];
+    }
 }
 
 
 #pragma mark 更改表中数据
 - (void)updateObjInTable:(NSString *)tableName whereObj:(NSString *)where newValue:(NSString *)newValue objs:(NSString *)firstValue, ... NS_REQUIRES_NIL_TERMINATION {
-    //参数链表指针
-    va_list list;
-    //遍历开始
-    va_start(list, firstValue);
-    //知道读取到下一个时nil时结束递增
+    
+    NSParameterAssert(tableName);
+    NSParameterAssert(where);
+    NSParameterAssert(newValue);
+    
     NSMutableArray *objs = [[NSMutableArray alloc] init];
-    for (NSString *str = firstValue; str != nil; str = va_arg(list, NSString*)) {
-        NSLog(@"%@",str);
-        [objs addObject:str];
+    VA_LIST_CREATE_ARRAY(firstValue, objs);
+    if(objs.count == 0) {
+        NSLog(@"没有参数");
+        return;
     }
-    //结束遍历
-    va_end(list);
+    
     NSArray *allkeys = [_tableObjDic objectForKey:tableName];
     NSMutableString *sql_Obj = [[NSMutableString alloc] init];
     for(NSInteger i = 0; i < allkeys.count; i++)
@@ -308,35 +304,50 @@ VA_LIST_CLEAR(list); \
         NSString *updateSql = [NSString stringWithFormat:
                                @"update %@ set %@='%@' where %@",tableName,where,newValue,
                                sql_Obj];
-        BOOL res = [_fmdb executeUpdate:updateSql];
+        [_ioQueue inDatabase:^(FMDatabase *db) {
+            BOOL res = [_fmdb executeUpdate:updateSql];
+            
+            if (!res) {
+                NSLog(@"error when update db table%@",_fmdb.lastErrorMessage);
+            } else {
+                NSLog(@"success to update db table");
+            }
+            [_fmdb close];
+        }];
+         
         
-        if (!res) {
-            NSLog(@"error when update db table%@",_fmdb.lastErrorMessage);
-        } else {
-            NSLog(@"success to update db table");
-        }
-        [_fmdb close];
-    }
+    }else {
+         [_fmdb close];
+     }
 }
 
 
 
 #pragma mark 获取一行所有数据
 - (NSArray *)getAllMessage:(NSString *)tableName where:(NSString *)where value:(NSString *)value {
-    [_fmdb open];
+    NSParameterAssert(tableName);
+    NSParameterAssert(where);
+    NSParameterAssert(value);
+    
     NSMutableArray *historyArr = [NSMutableArray array];
     if (historyArr.count > 0) {
         [historyArr removeAllObjects];
     }
     if ([_fmdb open]) {
         NSString *sql = [NSString stringWithFormat:@"select * from %@ where %@='%@'",tableName,where,value];
-        FMResultSet *rs = [_fmdb executeQuery:sql];
-        while ([rs next]) {
-            for (NSString *obj in [_tableObjDic objectForKey:tableName]) {
-                NSString *value = [rs stringForColumn:obj];
-                [historyArr addObject:value];
+         [_ioQueue inDatabase:^(FMDatabase *db) {
+            FMResultSet *rs = [_fmdb executeQuery:sql];
+            while ([rs next]) {
+                for (NSString *obj in [_tableObjDic objectForKey:tableName]) {
+                    NSString *value = [rs stringForColumn:obj];
+                    [historyArr addObject:value];
+                }
             }
-        }
+             [_fmdb close];
+         }];
+    }
+    else {
+        [_fmdb close];
     }
     return historyArr;
 }
